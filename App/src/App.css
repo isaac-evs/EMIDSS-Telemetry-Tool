@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+:root {
+    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+    background: #020617;
+    color: #e5e7eb;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    background: #020617;
+}
+
+body {
+    margin: 0;
+    min-width: 320px;
+    min-height: 100vh;
+    background: #020617;
+}
+
+button,
+select,
+input,
+textarea {
+    font: inherit;
+}
+
+/* Keep native form controls consistent with the dark theme. */
+select {
+  color-scheme: dark;
+  background-color: #020617;
+  color: #f1f5f9;
+}
+
+select option {
+  background-color: #020617;
+  color: #f1f5f9;
+}

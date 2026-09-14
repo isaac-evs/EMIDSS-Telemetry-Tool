@@ -1,0 +1,50 @@
+graph TD
+    %% Define Styles
+    classDef frontend fill:#1E88E5,stroke:#0D47A1,stroke-width:2px,color:#FFF;
+    classDef backend fill:#E64A19,stroke:#BF360C,stroke-width:2px,color:#FFF;
+    classDef hardware fill:#43A047,stroke:#1B5E20,stroke-width:2px,color:#FFF;
+    classDef bridge fill:#757575,stroke:#424242,stroke-width:2px,color:#FFF;
+
+    %% Subgraphs
+    subgraph Frontend["Presentation Tier (Frontend - Webview)"]
+        UI_Conn[Connection Manager]:::frontend
+        UI_Ctrl[Mission Control Panel]:::frontend
+        UI_Term[Terminal Console]:::frontend
+        UI_Dash[Telemetry Dashboard <br/> Chart.js]:::frontend
+    end
+
+    subgraph IPC["Tauri IPC Bridge"]
+        Cmd_API(Commands API <br/> down to Rust):::bridge
+        Evt_API(Events API <br/> up to Web):::bridge
+    end
+
+    subgraph Backend["Logic & I/O Tier (Backend - Rust Core)"]
+        Port_Mgr[Port Manager]:::backend
+        Cmd_Disp[Command Dispatcher]:::backend
+        Ingest_Buf[Ingestion Buffer <br/> tokio-serial async]:::backend
+        Polars_Eng[DataFrame Engine <br/> Polars]:::backend
+    end
+
+    subgraph Hardware["Physical Layer"]
+        COM_Port((UART / COM Port)):::hardware
+        Cubesat[EMIDSS-8 Payload]:::hardware
+    end
+
+    %% Routing Frontend to Backend (Commands)
+    UI_Conn -->|connect_uart| Cmd_API
+    UI_Ctrl -->|send_command| Cmd_API
+    Cmd_API --> Cmd_Disp
+    Cmd_Disp -->|Bytes eg. b'S2201'| Port_Mgr
+
+    %% Hardware I/O
+    Port_Mgr -->|Tx Bytes| COM_Port
+    COM_Port -->|Rx Bytes| Ingest_Buf
+    COM_Port <-->|Physical Wiring| Cubesat
+
+    %% Routing Backend to Frontend (Events)
+    Ingest_Buf -->|Raw Strings| Evt_API
+    Ingest_Buf -->|Memory Dumps| Polars_Eng
+    Polars_Eng -->|Structured JSON| Evt_API
+
+    Evt_API -->|uart-rx event| UI_Term
+    Evt_API -->|telemetry-update event| UI_Dash
